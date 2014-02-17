@@ -18,15 +18,17 @@ unsigned CountCycles(unsigned i)
 
 unsigned FindMax(unsigned i, unsigned j)
 {
+	if (i > j)
+		swap(i, j);
 	unsigned max_cycles = 0;
-	for (auto x = i; x != j + 1; ++x)
+	for (auto x = i; x <= j; ++x)
 		max_cycles = std::max(max_cycles, CountCycles(x));
 	return max_cycles;
 }
 
 int main()
 {
-	known_cycles.reserve(10000000);
+	known_cycles.reserve(1000000);
 	known_cycles[1] = 1;
 
 	unsigned i(0), j(0);
