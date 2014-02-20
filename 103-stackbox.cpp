@@ -20,11 +20,11 @@ FindLongestIncreasingSubsequence(IterT first, IterT last,
 		                      [&compare](IterT a, IterT b) -> bool
 		                          { return compare(*a, *b); }
 		                      );
+		backrefs.push_back(it > begin(piles) ? *(it - 1) : last);
 		if (it == end(piles))
 			piles.push_back(i);
 		else
 			*it = i;
-		backrefs.push_back(it > begin(piles) ? *(it - 1) : last);
 	}
 
 	vector<IterT> seq(piles.size());
@@ -38,21 +38,12 @@ FindLongestIncreasingSubsequence(IterT first, IterT last,
 template <typename BoxT>
 bool BoxFits(const BoxT &a, const BoxT &b)
 {
-	typename BoxT::value_type as[a.size()];
-	copy(begin(a), end(a), as);
-	sort(as, as + a.size());
-
-	do
+	for (size_t i{0}; i != a.size(); ++i)
 	{
-		bool fits{true};
-		for (size_t i{0}; fits && i != a.size(); ++i)
-			fits = as[i] < b[i];
-		if (fits)
-			return true;
+		if (a[i] < b[i])
+			return false;
 	}
-	while (next_permutation(as, as + a.size()));
-
-	return false;
+	return true;
 }
 
 int main()
@@ -73,15 +64,16 @@ int main()
 				cin >> d;
 				box.push_back(d);
 			}
+			sort(begin(box), end(box));
 			boxes.push_back(move(box));
 		}
 
-		// First sort by volume
+		// First sort descending by volume
 		sort(begin(boxes), end(boxes),
 		     [](const BoxT &a, const BoxT &b) -> bool
 		     {
 		         return accumulate(begin(a), end(a), 1, multiplies<int>())
-		              < accumulate(begin(b), end(b), 1, multiplies<int>());
+		              > accumulate(begin(b), end(b), 1, multiplies<int>());
 		     });
 
 		auto sequence =
