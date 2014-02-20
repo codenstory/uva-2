@@ -35,53 +35,72 @@ FindLongestIncreasingSubsequence(IterT first, IterT last,
 	return seq;
 }
 
-template <typename BoxT>
-bool BoxFits(const BoxT &a, const BoxT &b)
+struct Box
 {
-	for (size_t i{0}; i != a.size(); ++i)
+	int number;
+	vector<int> dimensions;
+
+	Box(int number, int dimensions)
+		: number(number)
+		, dimensions(dimensions)
 	{
-		if (a[i] < b[i])
-			return false;
 	}
-	return true;
+
+	int GetVolume() const
+	{
+		return accumulate(begin(dimensions), end(dimensions), 1, multiplies<int>());
+	}
+
+	bool CanFit(const Box &other) const
+	{
+		for (size_t i{0}; i != dimensions.size(); ++i)
+		{
+			if (dimensions[i] < other.dimensions[i])
+				return false;
+		}
+		return true;
+	}
+};
+
+bool CanFit(const Box &a, const Box &b)
+{
+	return a.CanFit(b);
+}
+
+istream &operator>>(istream &is, Box &b)
+{
+	for (auto &d : b.dimensions)
+		cin >> d;
+	sort(begin(b.dimensions), end(b.dimensions));
+	return is;
 }
 
 int main()
 {
 	int k{0}, n{0};
 
-	typedef vector<int> BoxT;
-
 	while (cin >> k >> n)
 	{
-		vector<BoxT> boxes;
+		vector<Box> boxes;
 		for (int i{0}; i != k; ++i)
 		{
-			BoxT box;
-			for (int j{0}; j != n; ++j)
-			{
-				int d;
-				cin >> d;
-				box.push_back(d);
-			}
-			sort(begin(box), end(box));
+			Box box{i, n};
+			cin >> box;
 			boxes.push_back(move(box));
 		}
 
 		// First sort descending by volume
 		sort(begin(boxes), end(boxes),
-		     [](const BoxT &a, const BoxT &b) -> bool
+		     [](const Box &a, const Box &b) -> bool
 		     {
-		         return accumulate(begin(a), end(a), 1, multiplies<int>())
-		              > accumulate(begin(b), end(b), 1, multiplies<int>());
+		         return a.GetVolume() > b.GetVolume();
 		     });
 
 		auto sequence =
-			FindLongestIncreasingSubsequence(begin(boxes), end(boxes),
-			                                 &BoxFits<BoxT>);
+			FindLongestIncreasingSubsequence(begin(boxes), end(boxes), &CanFit);
 		cout << sequence.size() << endl;
 		for (auto s : sequence)
-			cout << (s - begin(boxes)) << " ";
+			cout << s->number << " ";
 		cout << endl;
 	}
 
