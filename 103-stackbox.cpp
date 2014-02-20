@@ -4,35 +4,42 @@
 
 using namespace std;
 
+
 template <typename IterT, typename CompareT>
 vector<IterT>
 FindLongestIncreasingSubsequence(IterT first, IterT last,
                                  CompareT compare)
 {
-	// Patience sorting to find increasing longest subsequence
-	vector<IterT> piles;
-	vector<IterT> backrefs;
+	int n = last - first;
 
-	for (IterT i{first}; i != last; ++i)
+	// Dynamic programming O(n²)
+	int M[n];
+	int backref[n];
+
+	for (int i{0}; i != n; ++i)
 	{
-		auto it = lower_bound(begin(piles), end(piles),
-		                      i,
-		                      [&compare](IterT a, IterT b) -> bool
-		                          { return compare(*a, *b); }
-		                      );
-		backrefs.push_back(it > begin(piles) ? *(it - 1) : last);
-		if (it == end(piles))
-			piles.push_back(i);
-		else
-			*it = i;
+		M[i] = 1;
+		backref[i] = -1;
+
+		for (int j{0}; j != i; ++j)
+		{
+			if (compare(*(first + j), *(first + i)))
+			{
+				if (M[j] + 1 > M[i])
+				{
+					M[i] = M[j] + 1;
+					backref[i] = j;
+				}
+			}
+		}
 	}
 
-	vector<IterT> seq(piles.size());
+	vector<IterT> sequence;
 
-	int j = seq.size() - 1;
-	for (IterT i{piles.back()}; i != last; --j, i = backrefs[i - first])
-		seq[j] = i;
-	return seq;
+	for (auto m = max_element(M, M + n) - M; m >= 0; m = backref[m])
+		sequence.push_back(first + m);
+
+	return sequence;
 }
 
 struct Box
@@ -55,7 +62,7 @@ struct Box
 	{
 		for (size_t i{0}; i != dimensions.size(); ++i)
 		{
-			if (dimensions[i] < other.dimensions[i])
+			if (dimensions[i] <= other.dimensions[i])
 				return false;
 		}
 		return true;
@@ -70,7 +77,7 @@ bool CanFit(const Box &a, const Box &b)
 istream &operator>>(istream &is, Box &b)
 {
 	for (auto &d : b.dimensions)
-		cin >> d;
+		is >> d;
 	sort(begin(b.dimensions), end(b.dimensions));
 	return is;
 }
@@ -82,7 +89,7 @@ int main()
 	while (cin >> k >> n)
 	{
 		vector<Box> boxes;
-		for (int i{0}; i != k; ++i)
+		for (int i{1}; i <= k; ++i)
 		{
 			Box box{i, n};
 			cin >> box;
