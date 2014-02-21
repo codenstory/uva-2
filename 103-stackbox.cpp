@@ -25,7 +25,7 @@ FindLongestIncreasingSubsequence(IterT first, IterT last,
 		{
 			if (compare(*(first + j), *(first + i)))
 			{
-				if (M[j] + 1 > M[i])
+				if (M[j] + 1 >= M[i])
 				{
 					M[i] = M[j] + 1;
 					backref[i] = j;
