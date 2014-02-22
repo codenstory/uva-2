@@ -12,58 +12,60 @@ int main()
 	while (cin >> n)
 	{
 		double w[n][n];
-		double dist[n][n];
 		int next[n][n];
 
-		for (int i = 0; i != n; ++i)
-			for (int j = 0; j != n; ++j)
+		for (int u = 0; u != n; ++u)
+			for (int v = 0; v != n; ++v)
 			{
-				next[i][j] = -1;
-				if (i == j)
+				next[u][v] = -1;
+				if (u == v)
 				{
-					w[i][j] = 1.0;
-					dist[i][j] = 0.0;
+					w[u][v] = 0.0;
 					continue;
 				}
-				cin >> w[i][j];
-				dist[i][j] = -log(w[i][j]);
+				cin >> w[u][v];
+				w[u][v] = -log(w[u][v]);
 			}
-
-		// Floyd-Warshall to find negative cycles.
-		for (int k = 0; k != n; ++k)
-			for (int i = 0; i != n; ++i)
-				for (int j = 0; j != n; ++j)
-					if (dist[i][k] + dist[k][j] < dist[i][j])
-					{
-						dist[i][j] = dist[i][k] + dist[k][j];
-						next[i][j] = k;
-					}
 
 		bool found{false};
+		for (int source = 0; source != n && !found; ++source)
+		{
+			double dist[n];
+			int pred[n];
 
-		for (int i = 0; i != n; ++i)
-			if (dist[i][i] < 0.0)
-			{
-				double profit = exp(-dist[i][i]);
-				if (profit < 1.01)
-					continue;
-				found = true;
+			for (int i = 0; i != n; ++i)
+				dist[i] = numeric_limits<double>::max(), pred[i] = -1;
+			dist[source] = 0.0;
 
-				auto *pnext = &next[0][0];
+			for (int i = 1; i != n; ++i)
+				for (int u = 0; u != n; ++u)
+					for (int v = 0; v != n; ++v)
+					{
+						double nd = dist[u] + w[u][v];
+						if (nd < dist[v])
+							dist[v] = nd, pred[v] = u;
+					}
 
-				function<void(int, int)> print_path = [&](int i, int j)
-				{
-					auto k = pnext[i*n + j];
-					if (k == -1)
-						found = false;
-					print_path(i, k);
-					cout << k << " ";
-					print_path(k, j);
-				};
-				print_path(i, i);
-
-				break;
-			}
+			for (int u = 0; u != n && !found; ++u)
+				for (int v = 0; v != n; ++v)
+					if (dist[u] + w[u][v] < dist[v])
+					{
+						double delta = dist[u] + w[u][v] - dist[v];
+						double profit = exp(-delta);
+						if (profit < 1.01)
+							continue;
+						found = true;
+						int p = v;
+						do
+						{
+							cout << p + 1 << " ";
+							p = pred[p];
+						}
+						while (p != v);
+						cout << v + 1 << endl;
+						break;
+					}
+		}
 
 		if (!found)
 			cout << "no arbitrage sequence exists" << endl;
