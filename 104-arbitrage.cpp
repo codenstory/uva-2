@@ -29,9 +29,10 @@ int main()
 
 		double dist[n];
 		int prev[n];
+		int next[n];
 
 		for (int i = 0; i != n; ++i)
-			dist[i] = 0.0, prev[i] = -1;
+			dist[i] = 0.0, prev[i] = -1, next[i] = -1;
 
 		bool found{false};
 
@@ -51,17 +52,25 @@ int main()
 							continue;
 						found = true;
 
-						// Recursively print the cycle.
-						const int *pprev{prev};
-						function<void(int, int)> print_cycle =
-							[&](int u, int v)
+						// Calculate the cycle from the prev.
+						int j{v};
+						for (; ; j = prev[j])
 						{
-							if (u != v)
-								print_cycle(pprev[u], v);
-							cout << u + 1 << " ";
-						};
-						print_cycle(prev[v], v);
-						cout << v + 1 << endl;
+							auto &x = next[prev[j]];
+							if (x != -1)
+								break;
+							x = j;
+						}
+
+						// Print the cycle
+						int k{j};
+						do
+						{
+							cout << k + 1 << " ";
+							k = next[k];
+						}
+						while (k != j);
+						cout << j + 1 << endl;
 					}
 				}
 
