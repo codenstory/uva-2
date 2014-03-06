@@ -43,7 +43,6 @@ struct Edge
 void SkyLine(istream &is, ostream &os)
 {
 	vector<Edge> edges;
-	map<int, int> heights;
 	int l{0}, h{0}, r{0};
 
 	while (is >> l >> h >> r)
@@ -54,34 +53,52 @@ void SkyLine(istream &is, ostream &os)
 
 	sort(begin(edges), end(edges));
 
+	int last_coord{-1};
+	map<int, int> heights;
+	heights[0] = 1;
+
+	auto open_edge = [&](const Edge &edge)
+	{
+		auto old_height = heights.rbegin()->first;
+		++heights[edge.height];
+		auto new_height = heights.rbegin()->first;
+
+		if (old_height != new_height && last_coord != edge.coord)
+		{
+			if (last_coord != -1)
+				os << last_coord << ' ' << old_height << ' ';
+			last_coord = edge.coord;
+		}
+	};
+
+	auto close_edge = [&](const Edge &edge)
+	{
+		auto old_height = heights.rbegin()->first;
+		if (!--heights[edge.height])
+			heights.erase(edge.height);
+		auto new_height = heights.rbegin()->first;
+
+		if (old_height != new_height && last_coord != edge.coord)
+		{
+			if (last_coord != -1)
+				os << last_coord << ' ' << old_height << ' ';
+			last_coord = edge.coord;
+		}
+	};
+
 	for (auto const &edge : edges)
 	{
 		switch (edge.direction)
 		{
 		case Direction::Left:
-			if (heights.empty() || heights.rbegin()->first < edge.height)
-				os << edge.coord << ' ' << edge.height << ' ';
-			++heights[edge.height];
+			open_edge(edge);
 			break;
 		case Direction::Right:
-			assert(!heights.empty());
-			assert(heights.rbegin()->first >= edge.height);
-			{
-				auto max_height = heights.rbegin()->first;
-				if (!--heights[edge.height])
-				{
-					heights.erase(edge.height);
-					auto next_height = heights.empty() ? 0 : heights.rbegin()->first;
-					if (max_height == edge.height)
-						os << edge.coord << ' ' << next_height << ' ';
-				}
-				else if (heights.empty())
-					os << edge.coord << " 0 ";
-			}
+			close_edge(edge);
 			break;
 		}
 	}
-	os << endl;
+	os << last_coord << ' ' << heights.rbegin()->first << endl;
 }
 
 #ifdef ONLINE_JUDGE
